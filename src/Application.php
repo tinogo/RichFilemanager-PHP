@@ -15,9 +15,9 @@ use function RFM\container;
 use function RFM\dispatcher;
 
 // path to "application" folder
-defined('FM_APP_PATH') or define('FM_APP_PATH', dirname(__FILE__));
+defined('FM_APP_PATH') or define('FM_APP_PATH', __DIR__);
 // path to PHP connector root folder
-defined('FM_ROOT_PATH') or define('FM_ROOT_PATH', dirname(dirname(__FILE__)));
+defined('FM_ROOT_PATH') or define('FM_ROOT_PATH', dirname(__FILE__, 2));
 // path to PHP connector root folder
 defined('DS') or define('DS', DIRECTORY_SEPARATOR);
 
@@ -91,7 +91,7 @@ class Application
      * @param string $string
      * @return string
      */
-    public function prefixed($string)
+    public function prefixed(string $string): string
     {
         return static::$prefix . '.' . $string;
     }
@@ -101,7 +101,7 @@ class Application
      *
      * @param StorageInterface $storage
      */
-    public function setStorage(StorageInterface $storage)
+    public function setStorage(StorageInterface $storage): void
     {
         $name = $storage->getName();
 
@@ -115,7 +115,7 @@ class Application
      * @return StorageInterface
      * @throws \Exception
      */
-    public function getStorage($name)
+    public function getStorage($name): StorageInterface
     {
         if(!isset(static::$storageRegistry[$name])) {
             throw new \Exception("Storage with name \"{$name}\" is not set.");
@@ -131,7 +131,7 @@ class Application
      * @param array $options
      * @return void
      */
-    public function configure($name, $options = [])
+    public function configure(string $name, $options = []): void
     {
         if (isset(static::$loadedConfigurations[$name])) {
             return;
@@ -161,7 +161,7 @@ class Application
      * @param string $name
      * @return string
      */
-    public function getConfigurationPath($name)
+    public function getConfigurationPath(string $name): string
     {
         return $this->basePath() . DS . 'config' . DS . "config.{$name}.php";
     }
@@ -172,13 +172,13 @@ class Application
      * @param  string|null  $path
      * @return string
      */
-    public function basePath($path = null)
+    public function basePath($path = null): string
     {
         if (isset($this->basePath)) {
             return $this->basePath.($path ? '/'.$path : $path);
         }
 
-        $this->basePath = realpath(getcwd().'/../');
+        $this->basePath = dirname(getcwd()) . '/';
 
         return $this->basePath($path);
     }
@@ -186,7 +186,7 @@ class Application
     /**
      * Register RichFilemanager application instance.
      */
-    public function registerRFM()
+    public function registerRFM(): void
     {
         container()->instance('richfilemanager', $this);
     }
@@ -194,7 +194,7 @@ class Application
     /**
      * Register request instance.
      */
-    public function registerRequestBindings()
+    public function registerRequestBindings(): void
     {
         container()->singleton('request', function () {
             return Request::createFromGlobals();
@@ -204,7 +204,7 @@ class Application
     /**
      * Register logger instance.
      */
-    public function registerLoggerBindings()
+    public function registerLoggerBindings(): void
     {
         container()->singleton('logger', function () {
             return new Logger();
@@ -214,7 +214,7 @@ class Application
     /**
      * Register configuration repository instance.
      */
-    public function registerConfigBindings()
+    public function registerConfigBindings(): void
     {
         container()->singleton('config', function () {
             return new Repository();
@@ -224,7 +224,7 @@ class Application
     /**
      * Register events dispatcher instance.
      */
-    public function registerDispatcherBindings()
+    public function registerDispatcherBindings(): void
     {
         container()->singleton('dispatcher', function () {
             return new EventDispatcher();
@@ -234,7 +234,7 @@ class Application
     /**
      * Register events listeners.
      */
-    public function registerEventsListeners()
+    public function registerEventsListeners(): void
     {
         dispatcher()->addListener(ApiEvent\AfterFolderReadEvent::NAME, 'fm_event_api_after_folder_read');
         dispatcher()->addListener(ApiEvent\AfterFolderSeekEvent::NAME, 'fm_event_api_after_folder_seek');
@@ -253,7 +253,7 @@ class Application
      *
      * @throws \Exception
      */
-    public function run()
+    public function run(): void
     {
         if (count(static::$storageRegistry) === 0) {
             throw new \Exception("No storage has been set.");
@@ -387,7 +387,7 @@ class Application
      * @param array $arguments
      * @param array $meta
      */
-    public function error($label, $arguments = [], $meta = [])
+    public function error(string $label, $arguments = [], $meta = []): void
     {
         $meta['arguments'] = $arguments;
         $message = 'Error code: ' . $label . ', meta: ' . json_encode($meta);
@@ -422,7 +422,7 @@ class Application
      * arrays via third argument, fourth argument etc.
      * @return array the merged array (the original arrays are not changed.)
      */
-    public function mergeConfigs($a, $b)
+    public function mergeConfigs(array $a, array $b): array
     {
         $args = func_get_args();
         $res = array_shift($args);
@@ -456,9 +456,9 @@ class Application
      *
      * @return bool
      */
-    public function php_os_is_windows()
+    public function php_os_is_windows(): bool
     {
-        return strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+        return stripos(PHP_OS, 'WIN') === 0;
     }
 
     /**
@@ -466,7 +466,7 @@ class Application
      *
      * @return string
      */
-    public function version()
+    public function version(): string
     {
         return 'RichFilemanager PHP connector v1.2.6';
     }
